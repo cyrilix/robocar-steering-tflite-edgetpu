@@ -11,6 +11,7 @@ import (
 	"github.com/mattn/go-tflite/delegates/edgetpu"
 	"go.uber.org/zap"
 	"image"
+	_ "image/jpeg"
 	"sort"
 )
 
