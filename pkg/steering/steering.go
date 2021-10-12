@@ -14,9 +14,10 @@ import (
 	"sort"
 )
 
-func NewPart(client mqtt.Client, steeringTopic, cameraTopic string, edgeVerbosity int) *Part {
+func NewPart(client mqtt.Client, modelPath, steeringTopic, cameraTopic string, edgeVerbosity int) *Part {
 	return &Part{
 		client:        client,
+		modelPath: 	   modelPath,
 		steeringTopic: steeringTopic,
 		cameraTopic:   cameraTopic,
 		edgeVebosity:  edgeVerbosity,

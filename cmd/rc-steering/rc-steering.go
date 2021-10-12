@@ -53,7 +53,7 @@ func main() {
 	}
 	defer client.Disconnect(50)
 
-	p := steering.NewPart(client, steeringTopic, cameraTopic, edgeVerbosity)
+	p := steering.NewPart(client, modelPath, steeringTopic, cameraTopic, edgeVerbosity)
 	defer p.Stop()
 
 	cli.HandleExit(p)
