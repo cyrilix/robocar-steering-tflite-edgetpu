@@ -18,12 +18,8 @@ func main() {
 	var cameraTopic, steeringTopic string
 	var modelPath string
 	var edgeVerbosity int
+	var debug bool
 
-	lgr, err := zap.NewProductionConfig().Build()
-	if err != nil {
-		log.Fatalf("unable to init logger: %v", err)
-	}
-	zap.ReplaceGlobals(lgr)
 
 	mqttQos := cli.InitIntFlag("MQTT_QOS", 0)
 	_, mqttRetain := os.LookupEnv("MQTT_RETAIN")
@@ -34,12 +30,30 @@ func main() {
 	flag.StringVar(&steeringTopic, "mqtt-topic-road", os.Getenv("MQTT_TOPIC_STEERING"), "Mqtt topic to publish road detection result, use MQTT_TOPIC_STEERING if args not set")
 	flag.StringVar(&cameraTopic, "mqtt-topic-camera", os.Getenv("MQTT_TOPIC_CAMERA"), "Mqtt topic that contains camera frame values, use MQTT_TOPIC_CAMERA if args not set")
 	flag.IntVar(&edgeVerbosity, "edge-verbosity", 0, "Edge TPU Verbosity")
+	flag.BoolVar(&debug, "debug", false, "Display debug logs")
 
 	flag.Parse()
 	if len(os.Args) <= 1 {
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
+
+	config := zap.NewDevelopmentConfig()
+	if debug {
+		config.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
+	} else {
+		config.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
+	}
+	lgr, err := config.Build()
+	if err != nil {
+		log.Fatalf("unable to init logger: %v", err)
+	}
+	defer func() {
+		if err := lgr.Sync(); err != nil {
+			log.Printf("unable to Sync logger: %v\n", err)
+		}
+	}()
+	zap.ReplaceGlobals(lgr)
 
 	if modelPath == "" {
 		zap.L().Error("model path is mandatory")

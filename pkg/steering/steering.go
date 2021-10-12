@@ -61,17 +61,22 @@ func (p *Part) Start() error {
 	if err != nil {
 		return fmt.Errorf("cannot get EdgeTPU version: %w", err)
 	}
-	zap.S().Infof("EdgeTPU Version: %s\n", edgetpuVersion)
+	zap.S().Infof("EdgeTPU Version: %s", edgetpuVersion)
 	edgetpu.Verbosity(p.edgeVebosity)
 
 	p.options = tflite.NewInterpreterOptions()
 	p.options.SetNumThread(4)
 	p.options.SetErrorReporter(func(msg string, userData interface{}) {
-		zap.L().Error(msg,
-			zap.Any("userData", userData),
+		zap.S().Errorw(msg,
+			"userData", userData,
 		)
 	}, nil)
 
+	zap.S().Infof("find %d edgetpu devices", len(devices))
+	zap.S().Infow("configure edgetpu",
+		"path", devices[0].Path,
+		"type", uint32(devices[0].Type),
+	)
 	// Add the first EdgeTPU device
 	d := edgetpu.New(devices[0])
 	if d == nil {
@@ -85,7 +90,7 @@ func (p *Part) Start() error {
 	}
 
 	if err := registerCallbacks(p); err != nil {
-		zap.S().Errorf("unable to register callbacks: %v", err)
+		zap.S().Errorw("unable to register callbacks", "error", err)
 		return err
 	}
 
@@ -119,7 +124,8 @@ func (p *Part) onFrame(_ mqtt.Client, message mqtt.Message) {
 
 	img, _, err := image.Decode(bytes.NewReader(msg.GetFrame()))
 	if err != nil {
-		zap.L().Error("unable to decode frame", zap.Error(err))
+		zap.L().Error("unable to decode frame, skip frame", zap.Error(err))
+		return
 	}
 
 	steering, confidence, err := p.Value(img)
@@ -130,6 +136,10 @@ func (p *Part) onFrame(_ mqtt.Client, message mqtt.Message) {
 		)
 		return
 	}
+	zap.L().Debug("new steering value",
+		zap.Float32("steering", steering),
+		zap.Float32("confidence", confidence),
+	)
 	msgSteering := &events.SteeringMessage{
 		Steering:   steering,
 		Confidence: confidence,
