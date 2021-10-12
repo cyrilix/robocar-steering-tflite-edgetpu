@@ -18,7 +18,7 @@ import (
 func NewPart(client mqtt.Client, modelPath, steeringTopic, cameraTopic string, edgeVerbosity int) *Part {
 	return &Part{
 		client:        client,
-		modelPath: 	   modelPath,
+		modelPath:     modelPath,
 		steeringTopic: steeringTopic,
 		cameraTopic:   cameraTopic,
 		edgeVebosity:  edgeVerbosity,
@@ -41,6 +41,7 @@ type Part struct {
 }
 
 func (p *Part) Start() error {
+	p.cancel = make(chan interface{})
 	p.model = tflite.NewModelFromFile(p.modelPath)
 	if p.model == nil {
 		return fmt.Errorf("cannot load model %v", p.modelPath)
@@ -64,7 +65,7 @@ func (p *Part) Start() error {
 	edgetpu.Verbosity(p.edgeVebosity)
 
 	p.options = tflite.NewInterpreterOptions()
-	//options.SetNumThread(4)
+	p.options.SetNumThread(4)
 	p.options.SetErrorReporter(func(msg string, userData interface{}) {
 		zap.L().Error(msg,
 			zap.Any("userData", userData),
@@ -73,6 +74,9 @@ func (p *Part) Start() error {
 
 	// Add the first EdgeTPU device
 	d := edgetpu.New(devices[0])
+	if d == nil {
+		return fmt.Errorf("unable to create new EdgeTpu delegate")
+	}
 	p.options.AddDelegate(d)
 
 	p.interpreter = tflite.NewInterpreter(p.model, p.options)
@@ -119,6 +123,13 @@ func (p *Part) onFrame(_ mqtt.Client, message mqtt.Message) {
 	}
 
 	steering, confidence, err := p.Value(img)
+	if err != nil {
+		zap.S().Errorw("unable to compute sterring",
+			"frame", msg.GetId().GetId(),
+		"error", err,
+		)
+		return
+	}
 	msgSteering := &events.SteeringMessage{
 		Steering:   steering,
 		Confidence: confidence,
@@ -203,7 +214,7 @@ func (p *Part) Value(img image.Image) (float32, float32, error) {
 var registerCallbacks = func(p *Part) error {
 	err := service.RegisterCallback(p.client, p.cameraTopic, p.onFrame)
 	if err != nil {
-		return err
+		return fmt.Errorf("unable to register callback: %w", err)
 	}
 	return nil
 }
