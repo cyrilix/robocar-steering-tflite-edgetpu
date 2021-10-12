@@ -3,7 +3,7 @@ module github.com/cyrilix/robocar-steering-tflite-edgetpu
 go 1.17
 
 require (
-	github.com/cyrilix/robocar-base v0.1.4
+	github.com/cyrilix/robocar-base v0.1.5
 	github.com/cyrilix/robocar-protobuf/go v1.0.3
 	github.com/eclipse/paho.mqtt.golang v1.3.5
 	github.com/golang/protobuf v1.5.2

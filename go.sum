@@ -10,8 +10,8 @@ github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDk
 github.com/containerd/containerd v1.4.1/go.mod h1:bC6axHOhabU15QhwfG7w5PipXdVtMXFTttgp+kVtyUA=
 github.com/containerd/continuity v0.0.0-20190426062206-aaeac12a7ffc/go.mod h1:GL3xCUCBDV3CZiTSEKksMWbLE66hEyuu9qyDOOqM47Y=
 github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f/go.mod h1:E3G3o1h8I7cfcXa63jLwjI0eiQQMgzzUDFVpN/nH/eA=
-github.com/cyrilix/robocar-base v0.1.4 h1:nfnjRwAcCfS7xGu6tW9rZhmc/HZIsuDJX5NFhgX5dWE=
-github.com/cyrilix/robocar-base v0.1.4/go.mod h1:Tt04UmbGBiQtU0Cn3wFD0q7XoyokTwIlWYQxThKI+04=
+github.com/cyrilix/robocar-base v0.1.5 h1:EfbYHB69hgyQCVuzZ9/ifdSrQfXS7+04M8O9BDu1/5w=
+github.com/cyrilix/robocar-base v0.1.5/go.mod h1:tb7R5OFoBn9EWNLX3Kzx6R/3cQ9/7r8XsHvlLSESOAM=
 github.com/cyrilix/robocar-protobuf/go v1.0.3 h1:iPHw2+7FVXG2C4+Th1m11hQ+2RpAQzlxKhc5M7XOa6Q=
 github.com/cyrilix/robocar-protobuf/go v1.0.3/go.mod h1:xb95cK07lYXnKcHZKnGafmAgYRrqZWZgV9LMiJAp+gE=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

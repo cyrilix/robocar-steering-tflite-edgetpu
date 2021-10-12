@@ -1,4 +1,4 @@
-# github.com/cyrilix/robocar-base v0.1.4
+# github.com/cyrilix/robocar-base v0.1.5
 ## explicit; go 1.17
 github.com/cyrilix/robocar-base/cli
 github.com/cyrilix/robocar-base/service
