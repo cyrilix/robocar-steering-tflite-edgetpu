@@ -18,6 +18,7 @@ func main() {
 	var cameraTopic, steeringTopic string
 	var modelPath string
 	var edgeVerbosity int
+	var imgWidth, imgHeight, horizon int
 	var debug bool
 
 
@@ -30,6 +31,9 @@ func main() {
 	flag.StringVar(&steeringTopic, "mqtt-topic-road", os.Getenv("MQTT_TOPIC_STEERING"), "Mqtt topic to publish road detection result, use MQTT_TOPIC_STEERING if args not set")
 	flag.StringVar(&cameraTopic, "mqtt-topic-camera", os.Getenv("MQTT_TOPIC_CAMERA"), "Mqtt topic that contains camera frame values, use MQTT_TOPIC_CAMERA if args not set")
 	flag.IntVar(&edgeVerbosity, "edge-verbosity", 0, "Edge TPU Verbosity")
+	flag.IntVar(&imgWidth, "img-width", 0, "image width expected by model (mandatory)")
+	flag.IntVar(&imgHeight, "img-height", 0, "image height expected by model (mandatory)")
+	flag.IntVar(&horizon, "horizon", 0, "upper zone to crop from image. Models expect size 'imgHeight - horizon'")
 	flag.BoolVar(&debug, "debug", false, "Display debug logs")
 
 	flag.Parse()
@@ -60,6 +64,11 @@ func main() {
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
+	if imgWidth <= 0 || imgHeight <= 0 {
+		zap.L().Error("img-width and img-height are mandatory")
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
 
 	client, err := cli.Connect(mqttBroker, username, password, clientId)
 	if err != nil {
@@ -67,7 +76,7 @@ func main() {
 	}
 	defer client.Disconnect(50)
 
-	p := steering.NewPart(client, modelPath, steeringTopic, cameraTopic, edgeVerbosity)
+	p := steering.NewPart(client, modelPath, steeringTopic, cameraTopic, edgeVerbosity, imgWidth, imgHeight, horizon)
 	defer p.Stop()
 
 	cli.HandleExit(p)

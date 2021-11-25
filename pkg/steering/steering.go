@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/cyrilix/robocar-base/service"
 	"github.com/cyrilix/robocar-protobuf/go/events"
+	"github.com/disintegration/imaging"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/golang/protobuf/proto"
 	"github.com/mattn/go-tflite"
@@ -15,13 +16,16 @@ import (
 	"sort"
 )
 
-func NewPart(client mqtt.Client, modelPath, steeringTopic, cameraTopic string, edgeVerbosity int) *Part {
+func NewPart(client mqtt.Client, modelPath, steeringTopic, cameraTopic string, edgeVerbosity int, imgWidth, imgHeight, horizon int) *Part {
 	return &Part{
 		client:        client,
 		modelPath:     modelPath,
 		steeringTopic: steeringTopic,
 		cameraTopic:   cameraTopic,
 		edgeVebosity:  edgeVerbosity,
+		imgWidth:      imgWidth,
+		imgHeight:     imgHeight,
+		horizon:       horizon,
 	}
 
 }
@@ -38,6 +42,10 @@ type Part struct {
 	modelPath    string
 	model        *tflite.Model
 	edgeVebosity int
+
+	imgWidth  int
+	imgHeight int
+	horizon   int
 }
 
 func (p *Part) Start() error {
@@ -132,7 +140,7 @@ func (p *Part) onFrame(_ mqtt.Client, message mqtt.Message) {
 	if err != nil {
 		zap.S().Errorw("unable to compute sterring",
 			"frame", msg.GetId().GetId(),
-		"error", err,
+			"error", err,
 		)
 		return
 	}
@@ -164,9 +172,19 @@ func (p *Part) Value(img image.Image) (float32, float32, error) {
 	dx := img.Bounds().Dx()
 	dy := img.Bounds().Dy()
 
+	if dx != p.imgWidth || dy != p.imgHeight {
+		img = imaging.Resize(img, p.imgWidth, p.imgHeight, imaging.NearestNeighbor)
+	}
+	if p.horizon > 0 {
+		img = imaging.Crop(img, image.Rect(0, p.horizon, img.Bounds().Dx(), img.Bounds().Dy()))
+	}
+
+	dx = img.Bounds().Dx()
+	dy = img.Bounds().Dy()
+
 	bb := make([]byte, dx*dy*3)
-	for y := 0; y < 128; y++ {
-		for x := 0; x < 160; x++ {
+	for y := 0; y < dy; y++ {
+		for x := 0; x < dx; x++ {
 			r, g, b, _ := img.At(x, y).RGBA()
 			bb[(y*dx+x)*3+0] = byte(float64(r) / 255.0)
 			bb[(y*dx+x)*3+1] = byte(float64(g) / 255.0)
