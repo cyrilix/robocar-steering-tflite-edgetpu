@@ -2,9 +2,11 @@ package steering
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"github.com/cyrilix/robocar-base/service"
 	"github.com/cyrilix/robocar-protobuf/go/events"
+	"github.com/cyrilix/robocar-steering-tflite-edgetpu/pkg/metrics"
 	"github.com/disintegration/imaging"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/golang/protobuf/proto"
@@ -14,6 +16,7 @@ import (
 	"image"
 	_ "image/jpeg"
 	"sort"
+	"time"
 )
 
 func NewPart(client mqtt.Client, modelPath, steeringTopic, cameraTopic string, edgeVerbosity int, imgWidth, imgHeight, horizon int) *Part {
@@ -130,6 +133,11 @@ func (p *Part) onFrame(_ mqtt.Client, message mqtt.Message) {
 		return
 	}
 
+	now := time.Now().UnixMilli()
+	frameAge := now - msg.Id.CreatedAt.AsTime().UnixMilli()
+	go metrics.FrameAge.Record(context.Background(), frameAge)
+
+
 	img, _, err := image.Decode(bytes.NewReader(msg.GetFrame()))
 	if err != nil {
 		zap.L().Error("unable to decode frame, skip frame", zap.Error(err))
@@ -137,6 +145,9 @@ func (p *Part) onFrame(_ mqtt.Client, message mqtt.Message) {
 	}
 
 	steering, confidence, err := p.Value(img)
+	inferenceDuration := time.Now().UnixMilli() - now
+	go metrics.InferenceDuration.Record(context.Background(), inferenceDuration)
+
 	if err != nil {
 		zap.S().Errorw("unable to compute sterring",
 			"frame", msg.GetId().GetId(),

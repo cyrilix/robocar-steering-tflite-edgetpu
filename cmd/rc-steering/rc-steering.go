@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"github.com/cyrilix/robocar-base/cli"
+	"github.com/cyrilix/robocar-steering-tflite-edgetpu/pkg/metrics"
 	"github.com/cyrilix/robocar-steering-tflite-edgetpu/pkg/steering"
 	"go.uber.org/zap"
 	"log"
@@ -58,6 +60,9 @@ func main() {
 		}
 	}()
 	zap.ReplaceGlobals(lgr)
+
+	cleanup := metrics.Init(context.Background())
+	defer cleanup()
 
 	if modelPath == "" {
 		zap.L().Error("model path is mandatory")
