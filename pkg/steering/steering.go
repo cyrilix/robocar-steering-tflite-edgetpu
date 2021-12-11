@@ -137,7 +137,6 @@ func (p *Part) onFrame(_ mqtt.Client, message mqtt.Message) {
 	frameAge := now - msg.Id.CreatedAt.AsTime().UnixMilli()
 	go metrics.FrameAge.Record(context.Background(), frameAge)
 
-
 	img, _, err := image.Decode(bytes.NewReader(msg.GetFrame()))
 	if err != nil {
 		zap.L().Error("unable to decode frame, skip frame", zap.Error(err))
@@ -197,9 +196,9 @@ func (p *Part) Value(img image.Image) (float32, float32, error) {
 	for y := 0; y < dy; y++ {
 		for x := 0; x < dx; x++ {
 			r, g, b, _ := img.At(x, y).RGBA()
-			bb[(y*dx+x)*3+0] = byte(float64(r) / 255.0)
-			bb[(y*dx+x)*3+1] = byte(float64(g) / 255.0)
-			bb[(y*dx+x)*3+2] = byte(float64(b) / 255.0)
+			bb[(y*dx+x)*3+0] = byte(float64(r) / 257.0)
+			bb[(y*dx+x)*3+1] = byte(float64(g) / 257.0)
+			bb[(y*dx+x)*3+2] = byte(float64(b) / 257.0)
 		}
 	}
 	status = input.CopyFromBuffer(bb)
