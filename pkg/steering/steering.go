@@ -237,6 +237,8 @@ func (p *Part) Value(img image.Image) (float32, float32, error) {
 		zap.L().Warn(fmt.Sprintf("none steering with score > %0.2f found", minScore))
 		return 0., 0., nil
 	}
+	zap.S().Debugf("raw result: %v", results)
+
 	sort.Slice(results, func(i, j int) bool {
 		return results[i].score > results[j].score
 	})
