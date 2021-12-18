@@ -21,8 +21,6 @@ func main() {
 	var modelPath string
 	var edgeVerbosity int
 	var imgWidth, imgHeight, horizon int
-	var debug bool
-
 
 	mqttQos := cli.InitIntFlag("MQTT_QOS", 0)
 	_, mqttRetain := os.LookupEnv("MQTT_RETAIN")
@@ -36,20 +34,16 @@ func main() {
 	flag.IntVar(&imgWidth, "img-width", 0, "image width expected by model (mandatory)")
 	flag.IntVar(&imgHeight, "img-height", 0, "image height expected by model (mandatory)")
 	flag.IntVar(&horizon, "horizon", 0, "upper zone to crop from image. Models expect size 'imgHeight - horizon'")
-	flag.BoolVar(&debug, "debug", false, "Display debug logs")
-
+	logLevel := zap.LevelFlag("log", zap.InfoLevel, "log level")
 	flag.Parse()
+
 	if len(os.Args) <= 1 {
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
 
 	config := zap.NewDevelopmentConfig()
-	if debug {
-		config.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
-	} else {
-		config.Level = zap.NewAtomicLevelAt(zap.InfoLevel)
-	}
+	config.Level = zap.NewAtomicLevelAt(*logLevel)
 	lgr, err := config.Build()
 	if err != nil {
 		log.Fatalf("unable to init logger: %v", err)
