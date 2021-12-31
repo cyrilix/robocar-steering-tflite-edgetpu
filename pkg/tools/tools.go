@@ -7,7 +7,7 @@ import (
 )
 
 // LinearBin  perform inverse linear_bin, taking
-func LinearBin(arr []byte, n int, offset int, r float64) (float64, float64) {
+func LinearBin(arr []int8, n int, offset int, r float64) (float64, float64) {
 	outputSize := len(arr)
 	type result struct {
 		score float64
@@ -17,7 +17,7 @@ func LinearBin(arr []byte, n int, offset int, r float64) (float64, float64) {
 	var results []result
 	minScore := 0.2
 	for i := 0; i < outputSize; i++ {
-		score := float64(arr[i]) / 255.0
+		score := float64(int(arr[i])+128) / 255.0
 		if score < minScore {
 			continue
 		}

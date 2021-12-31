@@ -211,17 +211,19 @@ func (p *Part) Value(img image.Image) (float32, float32, error) {
 		return 0., 0., fmt.Errorf("invoke failed: %v", status)
 	}
 
-	output := p.interpreter.GetOutputTensor(0)
+	output := p.interpreter.GetOutputTensor(0).Int8s()
+	zap.L().Debug("raw steering", zap.Int8s("result", output))
 
-	outputSize := output.Dim(output.NumDims() - 1)
+	//outputSize := output.Dim(output.NumDims() - 1)
 
-	b := make([]byte, outputSize)
-	status = output.CopyToBuffer(&b[0])
-	if status != tflite.OK {
-		return 0., 0., fmt.Errorf("output failed: %v", status)
-	}
+	//b := make([]byte, outputSize)
+	//status = output.CopyToBuffer(&b[0])
+	//if status != tflite.OK {
+	//		return 0., 0., fmt.Errorf("output failed: %v", status)
+	//}
 
-	steering, score := tools.LinearBin(b, 15, -1, 2.0)
+	steering, score := tools.LinearBin(output, 15, -1, 2.0)
+	//steering, score := tools.LinearBin(b, 15, -1, 2.0)
 	zap.L().Debug("found steering",
 		zap.Float64("steering", steering),
 		zap.Float64("score", score),
