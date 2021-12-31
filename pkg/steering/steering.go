@@ -192,13 +192,13 @@ func (p *Part) Value(img image.Image) (float32, float32, error) {
 	dx = img.Bounds().Dx()
 	dy = img.Bounds().Dy()
 
-	bb := make([]byte, dx*dy*3)
+	bb := make([]uint8, dx*dy*3)
 	for y := 0; y < dy; y++ {
 		for x := 0; x < dx; x++ {
 			r, g, b, _ := img.At(x, y).RGBA()
-			bb[(y*dx+x)*3+0] = byte(float64(r) / 257.0)
-			bb[(y*dx+x)*3+1] = byte(float64(g) / 257.0)
-			bb[(y*dx+x)*3+2] = byte(float64(b) / 257.0)
+			bb[(y*dx+x)*3+0] = uint8(float64(r) / 257.0)
+			bb[(y*dx+x)*3+1] = uint8(float64(g) / 257.0)
+			bb[(y*dx+x)*3+2] = uint8(float64(b) / 257.0)
 		}
 	}
 	status = input.CopyFromBuffer(bb)
@@ -211,8 +211,8 @@ func (p *Part) Value(img image.Image) (float32, float32, error) {
 		return 0., 0., fmt.Errorf("invoke failed: %v", status)
 	}
 
-	output := p.interpreter.GetOutputTensor(0).Int8s()
-	zap.L().Debug("raw steering", zap.Int8s("result", output))
+	output := p.interpreter.GetOutputTensor(0).UInt8s()
+	zap.L().Debug("raw steering", zap.Uint8s("result", output))
 
 	//outputSize := output.Dim(output.NumDims() - 1)
 
