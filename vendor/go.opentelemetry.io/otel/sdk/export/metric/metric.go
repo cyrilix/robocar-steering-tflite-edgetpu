@@ -139,8 +139,7 @@ type CheckpointerFactory interface {
 //
 // Note that any Aggregator may be attached to any instrument--this is
 // the result of the OpenTelemetry API/SDK separation.  It is possible
-// to attach a Sum aggregator to a Histogram instrument or a
-// MinMaxSumCount aggregator to a Counter instrument.
+// to attach a Sum aggregator to a Histogram instrument.
 type Aggregator interface {
 	// Aggregation returns an Aggregation interface to access the
 	// current state of this Aggregator.  The caller is
@@ -191,16 +190,6 @@ type Aggregator interface {
 	// The owner of an Aggregator being merged is responsible for
 	// synchronization of both Aggregator states.
 	Merge(aggregator Aggregator, descriptor *sdkapi.Descriptor) error
-}
-
-// Subtractor is an optional interface implemented by some
-// Aggregators.  An Aggregator must support `Subtract()` in order to
-// be configured for a Precomputed-Sum instrument (CounterObserver,
-// UpDownCounterObserver) using a DeltaExporter.
-type Subtractor interface {
-	// Subtract subtracts the `operand` from this Aggregator and
-	// outputs the value in `result`.
-	Subtract(operand, result Aggregator, descriptor *sdkapi.Descriptor) error
 }
 
 // Exporter handles presentation of the checkpoint of aggregate
