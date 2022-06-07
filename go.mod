@@ -1,6 +1,6 @@
 module github.com/cyrilix/robocar-steering-tflite-edgetpu
 
-go 1.17
+go 1.18
 
 require (
 	github.com/cyrilix/robocar-base v0.1.6

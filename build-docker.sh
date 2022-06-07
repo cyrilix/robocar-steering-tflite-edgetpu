@@ -5,7 +5,7 @@ TAG=$(git describe)
 FULL_IMAGE_NAME=docker.io/cyrilix/${IMAGE_NAME}:${TAG}
 BINARY=rc-steering
 TFLITE_VERSION=2.6.0
-GOLANG_VERSION=1.17
+GOLANG_VERSION=1.18
 
 GOTAGS="-tags netgo"
 BUILDER_CONTAINER="${IMAGE_NAME}-builder"
