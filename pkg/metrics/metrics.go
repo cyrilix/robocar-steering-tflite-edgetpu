@@ -3,8 +3,9 @@ package metrics
 import (
 	"context"
 	stdout "go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
-	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/metric/global"
+	"go.opentelemetry.io/otel/metric/instrument"
+	"go.opentelemetry.io/otel/metric/instrument/syncint64"
 	"go.opentelemetry.io/otel/metric/unit"
 	controller "go.opentelemetry.io/otel/sdk/metric/controller/basic"
 	processor "go.opentelemetry.io/otel/sdk/metric/processor/basic"
@@ -13,8 +14,8 @@ import (
 )
 
 var (
-	FrameAge          metric.Int64Histogram
-	InferenceDuration metric.Int64Histogram
+	FrameAge          syncint64.Histogram
+	InferenceDuration syncint64.Histogram
 )
 
 func initMeter(ctx context.Context) func() {
@@ -53,17 +54,25 @@ func initMeter(ctx context.Context) func() {
 
 func Init(ctx context.Context) func() {
 	cleaner := initMeter(ctx)
+	var err error
 
 	meter := global.Meter("robocar/rc-steering")
-
-	FrameAge = metric.Must(meter).NewInt64Histogram(
+	FrameAge, err = meter.SyncInt64().Histogram(
 		"robocar.frame_age",
-		metric.WithUnit(unit.Milliseconds),
-		metric.WithDescription("time before frame processing"))
-	InferenceDuration = metric.Must(meter).NewInt64Histogram(
+		instrument.WithUnit(unit.Milliseconds),
+		instrument.WithDescription("time before frame processing"),
+	)
+	if err != nil {
+		zap.S().Panicf("unable to instantiate FrameAge histogram: %v", err)
+	}
+	InferenceDuration, err = meter.SyncInt64().Histogram(
 		"robocar.inference_duration",
-		metric.WithUnit(unit.Milliseconds),
-		metric.WithDescription("tensorflow inference duration"))
+		instrument.WithUnit(unit.Milliseconds),
+		instrument.WithDescription("tensorflow inference duration"),
+	)
+	if err != nil {
+		zap.S().Panicf("unable to instantiate InferenceDuration histogram: %v", err)
+	}
 
 	return cleaner
 }
