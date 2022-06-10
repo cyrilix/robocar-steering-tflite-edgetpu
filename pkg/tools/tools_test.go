@@ -75,3 +75,28 @@ func Test_LinearBin(t *testing.T) {
 		})
 	}
 }
+
+func TestParseModelType(t *testing.T) {
+	type args struct {
+		s string
+	}
+	tests := []struct {
+		name string
+		args args
+		want ModelType
+	}{
+		{name: "categorical", args: args{s: "categorical"}, want: ModelTypeCategorical},
+		{name: "categorical-upper", args: args{s: "caTeGorical"}, want: ModelTypeCategorical},
+		{name: "linear", args: args{s: "linear"}, want: ModelTypeLinear},
+		{name: "linear-upper", args: args{s: "LineAr"}, want: ModelTypeLinear},
+		{name: "unknown", args: args{s: "1234"}, want: ModelTypeUnknown},
+		{name: "empty", args: args{s: ""}, want: ModelTypeUnknown},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ParseModelType(tt.args.s); got != tt.want {
+				t.Errorf("ParseModelType() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

@@ -19,9 +19,10 @@ import (
 	"time"
 )
 
-func NewPart(client mqtt.Client, modelPath, steeringTopic, cameraTopic string, edgeVerbosity int, imgWidth, imgHeight, horizon int) *Part {
+func NewPart(client mqtt.Client, modelType tools.ModelType, modelPath, steeringTopic, cameraTopic string, edgeVerbosity int, imgWidth, imgHeight, horizon int) *Part {
 	return &Part{
 		client:        client,
+		modelType:     modelType,
 		modelPath:     modelPath,
 		steeringTopic: steeringTopic,
 		cameraTopic:   cameraTopic,
@@ -42,6 +43,7 @@ type Part struct {
 
 	options      *tflite.InterpreterOptions
 	interpreter  *tflite.Interpreter
+	modelType    tools.ModelType
 	modelPath    string
 	model        *tflite.Model
 	edgeVebosity int
@@ -214,7 +216,14 @@ func (p *Part) Value(img image.Image) (float32, float32, error) {
 	output := p.interpreter.GetOutputTensor(0).UInt8s()
 	zap.L().Debug("raw steering", zap.Uint8s("result", output))
 
-	steering, score := tools.LinearBin(output, 15, -1, 2.0)
+	var steering, score float64
+	switch p.modelType {
+	case tools.ModelTypeCategorical:
+		steering, score = tools.LinearBin(output, 15, -1, 2.0)
+	case tools.ModelTypeLinear:
+		steering = 2*(float64(output[0])/255.) - 1.
+		score = 0.6
+	}
 	zap.L().Debug("found steering",
 		zap.Float64("steering", steering),
 		zap.Float64("score", score),

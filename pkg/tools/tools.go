@@ -4,6 +4,37 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"sort"
+	"strings"
+)
+
+type ModelType int
+
+func ParseModelType(s string) ModelType {
+	switch strings.ToLower(s) {
+	case "categorical":
+		return ModelTypeCategorical
+	case "linear":
+		return ModelTypeLinear
+	default:
+		return ModelTypeUnknown
+	}
+}
+
+func (m ModelType) String() string {
+	switch m {
+	case ModelTypeCategorical:
+		return "categorical"
+	case ModelTypeLinear:
+		return "linear"
+	default:
+		return "unknown"
+	}
+}
+
+const (
+	ModelTypeUnknown ModelType = iota
+	ModelTypeCategorical
+	ModelTypeLinear
 )
 
 // LinearBin  perform inverse linear_bin, taking
