@@ -1,7 +1,6 @@
 package tools
 
 import (
-	"fmt"
 	"go.uber.org/zap"
 	"sort"
 	"strings"
@@ -46,19 +45,11 @@ func LinearBin(arr []uint8, n int, offset int, r float64) (float64, float64) {
 	}
 
 	var results []result
-	minScore := 0.2
 	for i := 0; i < outputSize; i++ {
 		score := float64(int(arr[i])) / 255.0
-		if score < minScore {
-			continue
-		}
 		results = append(results, result{score: score, index: i})
 	}
 
-	if len(results) == 0 {
-		zap.L().Warn(fmt.Sprintf("none steering with score > %0.2f found", minScore))
-		return 0., 0.
-	}
 	zap.S().Debugf("raw result: %v", results)
 
 	sort.Slice(results, func(i, j int) bool {
