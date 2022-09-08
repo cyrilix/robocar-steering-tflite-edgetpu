@@ -4,7 +4,7 @@ IMAGE_NAME=robocar-steering-tflite-edgetpu
 TAG=$(git describe)
 FULL_IMAGE_NAME=docker.io/cyrilix/${IMAGE_NAME}:${TAG}
 BINARY=rc-steering
-TFLITE_VERSION=2.6.0
+TFLITE_VERSION=2.9.0
 GOLANG_VERSION=1.18
 
 GOTAGS="-tags netgo"
