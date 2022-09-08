@@ -7,7 +7,7 @@ require (
 	github.com/cyrilix/robocar-protobuf/go v1.0.5
 	github.com/disintegration/imaging v1.6.2
 	github.com/eclipse/paho.mqtt.golang v1.4.1
-	github.com/mattn/go-tflite v1.0.2
+	github.com/mattn/go-tflite v1.0.4
 	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v0.30.0
 	go.opentelemetry.io/otel/metric v0.30.0
 	go.opentelemetry.io/otel/sdk/metric v0.30.0

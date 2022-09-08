@@ -28,7 +28,7 @@ github.com/gorilla/websocket
 # github.com/mattn/go-pointer v0.0.1
 ## explicit
 github.com/mattn/go-pointer
-# github.com/mattn/go-tflite v1.0.2
+# github.com/mattn/go-tflite v1.0.4
 ## explicit; go 1.13
 github.com/mattn/go-tflite
 github.com/mattn/go-tflite/delegates
