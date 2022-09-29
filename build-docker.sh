@@ -4,8 +4,8 @@ IMAGE_NAME=robocar-steering-tflite-edgetpu
 TAG=$(git describe)
 FULL_IMAGE_NAME=docker.io/cyrilix/${IMAGE_NAME}:${TAG}
 BINARY=rc-steering
-TFLITE_VERSION=2.9.0
-GOLANG_VERSION=1.18
+TFLITE_VERSION=2.9.1
+GOLANG_VERSION=1.19
 
 GOTAGS="-tags netgo"
 BUILDER_CONTAINER="${IMAGE_NAME}-builder"
@@ -35,6 +35,20 @@ image_build_binaries(){
   buildah run $containerName ln -s /usr/lib/aarch64-linux-gnu/libedgetpu.so.1 /usr/lib/aarch64-linux-gnu/libedgetpu.so
 
   printf "Compile for linux/amd64\n"
+  LIB_ARCH=x86_64-linux-gnu
+  LIB_FLAGS="-L /usr/local/lib/${LIB_ARCH} \
+              -L/usr/local/lib/${LIB_ARCH}/absl/base -labsl_base -labsl_throw_delegate -labsl_raw_logging_internal -labsl_spinlock_wait -labsl_malloc_internal -labsl_log_severity \
+              -L/usr/local/lib/${LIB_ARCH}/absl/status -labsl_status \
+              -L/usr/local/lib/${LIB_ARCH}/absl/hash -labsl_hash -labsl_city -labsl_low_level_hash \
+              -L/usr/local/lib/${LIB_ARCH}/absl/flags -labsl_flags -labsl_flags_internal -labsl_flags_marshalling -labsl_flags_reflection -labsl_flags_config -labsl_flags_program_name -labsl_flags_private_handle_accessor -labsl_flags_commandlineflag -labsl_flags_commandlineflag_internal\
+              -L/usr/local/lib/${LIB_ARCH}/absl/types -labsl_bad_variant_access -labsl_bad_optional_access -labsl_bad_any_cast_impl \
+              -L/usr/local/lib/${LIB_ARCH}/absl/strings -labsl_strings -labsl_str_format_internal -labsl_cord -labsl_cordz_info -labsl_cord_internal -labsl_cordz_functions -labsl_cordz_handle -labsl_strings_internal \
+              -L/usr/local/lib/${LIB_ARCH}/absl/time -labsl_time -labsl_time_zone -labsl_civil_time \
+              -L/usr/local/lib/${LIB_ARCH}/absl/numeric -labsl_int128 \
+              -L/usr/local/lib/${LIB_ARCH}/absl/synchronization -labsl_synchronization -labsl_graphcycles_internal\
+              -L/usr/local/lib/${LIB_ARCH}/absl/debugging -labsl_stacktrace -labsl_symbolize -labsl_debugging_internal -labsl_demangle_internal \
+              -L/usr/local/lib/${LIB_ARCH}/absl/profiling -labsl_exponential_biased \
+              -L/usr/local/lib/${LIB_ARCH}/absl/container -labsl_raw_hash_set -labsl_hashtablez_sampler"
   buildah run \
       --env CGO_ENABLED=1 \
       --env CC=gcc \
@@ -43,12 +57,26 @@ image_build_binaries(){
       --env GOARCH=amd64 \
       --env GOARM=${GOARM} \
       --env CGO_CPPFLAGS="-I/usr/local/include" \
-      --env CGO_LDFLAGS="-L /usr/local/lib/x86_64-linux-gnu -L /usr/lib/x86_64-linux-gnu" \
+      --env CGO_LDFLAGS="${LIB_FLAGS}" \
       $containerName \
     go build -a -o rc-steering.amd64 ./cmd/rc-steering
       #--env CGO_CXXFLAGS="--std=c++1z" \
 
   printf "Compile for linux/arm/v7\n"
+  LIB_ARCH=arm-linux-gnueabihf
+  LIB_FLAGS="-L /usr/local/lib/${LIB_ARCH} \
+              -L/usr/local/lib/${LIB_ARCH}/absl/base -labsl_base -labsl_throw_delegate -labsl_raw_logging_internal -labsl_spinlock_wait -labsl_malloc_internal -labsl_log_severity \
+              -L/usr/local/lib/${LIB_ARCH}/absl/status -labsl_status \
+              -L/usr/local/lib/${LIB_ARCH}/absl/hash -labsl_hash -labsl_city -labsl_low_level_hash \
+              -L/usr/local/lib/${LIB_ARCH}/absl/flags -labsl_flags -labsl_flags_internal -labsl_flags_marshalling -labsl_flags_reflection -labsl_flags_config -labsl_flags_program_name -labsl_flags_private_handle_accessor -labsl_flags_commandlineflag -labsl_flags_commandlineflag_internal\
+              -L/usr/local/lib/${LIB_ARCH}/absl/types -labsl_bad_variant_access -labsl_bad_optional_access -labsl_bad_any_cast_impl \
+              -L/usr/local/lib/${LIB_ARCH}/absl/strings -labsl_strings -labsl_str_format_internal -labsl_cord -labsl_cordz_info -labsl_cord_internal -labsl_cordz_functions -labsl_cordz_handle -labsl_strings_internal \
+              -L/usr/local/lib/${LIB_ARCH}/absl/time -labsl_time -labsl_time_zone -labsl_civil_time \
+              -L/usr/local/lib/${LIB_ARCH}/absl/numeric -labsl_int128 \
+              -L/usr/local/lib/${LIB_ARCH}/absl/synchronization -labsl_synchronization -labsl_graphcycles_internal\
+              -L/usr/local/lib/${LIB_ARCH}/absl/debugging -labsl_stacktrace -labsl_symbolize -labsl_debugging_internal -labsl_demangle_internal \
+              -L/usr/local/lib/${LIB_ARCH}/absl/profiling -labsl_exponential_biased \
+              -L/usr/local/lib/${LIB_ARCH}/absl/container -labsl_raw_hash_set -labsl_hashtablez_sampler"
   buildah run \
       --env CGO_ENABLED=1 \
       --env CC=arm-linux-gnueabihf-gcc \
@@ -57,11 +85,25 @@ image_build_binaries(){
       --env GOARCH=arm \
       --env GOARM=7 \
       --env CGO_CPPFLAGS="-I/usr/local/include" \
-      --env CGO_LDFLAGS="-L /usr/lib/arm-linux-gnueabihf -L /usr/local/lib/arm-linux-gnueabihf" \
+      --env CGO_LDFLAGS="${LIB_FLAGS}" \
       $containerName \
     go build -a -o rc-steering.armhf ./cmd/rc-steering
 
   printf "Compile for linux/arm64\n"
+  LIB_ARCH=aarch64-linux-gnu
+  LIB_FLAGS="-L /usr/local/lib/${LIB_ARCH} \
+              -L/usr/local/lib/${LIB_ARCH}/absl/base -labsl_base -labsl_throw_delegate -labsl_raw_logging_internal -labsl_spinlock_wait -labsl_malloc_internal -labsl_log_severity \
+              -L/usr/local/lib/${LIB_ARCH}/absl/status -labsl_status \
+              -L/usr/local/lib/${LIB_ARCH}/absl/hash -labsl_hash -labsl_city -labsl_low_level_hash \
+              -L/usr/local/lib/${LIB_ARCH}/absl/flags -labsl_flags -labsl_flags_internal -labsl_flags_marshalling -labsl_flags_reflection -labsl_flags_config -labsl_flags_program_name -labsl_flags_private_handle_accessor -labsl_flags_commandlineflag -labsl_flags_commandlineflag_internal\
+              -L/usr/local/lib/${LIB_ARCH}/absl/types -labsl_bad_variant_access -labsl_bad_optional_access -labsl_bad_any_cast_impl \
+              -L/usr/local/lib/${LIB_ARCH}/absl/strings -labsl_strings -labsl_str_format_internal -labsl_cord -labsl_cordz_info -labsl_cord_internal -labsl_cordz_functions -labsl_cordz_handle -labsl_strings_internal \
+              -L/usr/local/lib/${LIB_ARCH}/absl/time -labsl_time -labsl_time_zone -labsl_civil_time \
+              -L/usr/local/lib/${LIB_ARCH}/absl/numeric -labsl_int128 \
+              -L/usr/local/lib/${LIB_ARCH}/absl/synchronization -labsl_synchronization -labsl_graphcycles_internal\
+              -L/usr/local/lib/${LIB_ARCH}/absl/debugging -labsl_stacktrace -labsl_symbolize -labsl_debugging_internal -labsl_demangle_internal \
+              -L/usr/local/lib/${LIB_ARCH}/absl/profiling -labsl_exponential_biased \
+              -L/usr/local/lib/${LIB_ARCH}/absl/container -labsl_raw_hash_set -labsl_hashtablez_sampler"
   buildah run \
       --env CGO_ENABLED=1 \
       --env CC=aarch64-linux-gnu-gcc \
@@ -69,7 +111,7 @@ image_build_binaries(){
       --env GOOS=linux \
       --env GOARCH=arm64 \
       --env CGO_CPPFLAGS="-I/usr/local/include" \
-      --env CGO_LDFLAGS="-L /usr/lib/aarch64-linux-gnu -L /usr/local/lib/aarch64-linux-gnu" \
+      --env CGO_LDFLAGS="${LIB_FLAGS}" \
       $containerName \
     go build -a -o rc-steering.arm64 ./cmd/rc-steering
 }
