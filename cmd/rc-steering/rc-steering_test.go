@@ -37,6 +37,15 @@ func Test_parseModelName(t *testing.T) {
 			wantErr:       false,
 		},
 		{
+			name:          "linear with prefix",
+			args:          args{modelPath: "/tmp/model_angle_linear_120x160h10.tflite"},
+			wantModelType: tools.ModelTypeLinear,
+			wantImgWidth:  120,
+			wantImgHeight: 160,
+			wantHorizon:   10,
+			wantErr:       false,
+		},
+		{
 			name:          "bad-model",
 			args:          args{modelPath: "/tmp/model_123_120x160h10.tflite"},
 			wantModelType: tools.ModelTypeUnknown,
