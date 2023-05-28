@@ -27,7 +27,7 @@ var (
 func main() {
 	var mqttBroker, username, password, clientId string
 	var cameraTopic, steeringTopic string
-	var modelPath, modelsDir, ociRef string
+	var modelPath, modelsDir, ociRegistry, ociRepository, ociTag string
 	var edgeVerbosity int
 	var imgWidth, imgHeight, horizon int
 
@@ -37,7 +37,9 @@ func main() {
 	cli.InitMqttFlags(DefaultClientId, &mqttBroker, &username, &password, &clientId, &mqttQos, &mqttRetain)
 
 	flag.StringVar(&modelPath, "model", "", "path to model file")
-	flag.StringVar(&ociRef, "oci-model", "", "oci image to pull")
+	flag.StringVar(&ociRegistry, "oci-model-registry", "", "oci registry where to fetch model")
+	flag.StringVar(&ociRepository, "oci-model-repository", "", "oci repository where to fetch model")
+	flag.StringVar(&ociTag, "oci-model-tag", "", "oci tag name for model to pull")
 	flag.StringVar(&modelsDir, "models-dir", "/tmp/robocar/models", "path where to store model file")
 	flag.StringVar(&steeringTopic, "mqtt-topic-road", os.Getenv("MQTT_TOPIC_STEERING"), "Mqtt topic to publish road detection result, use MQTT_TOPIC_STEERING if args not set")
 	flag.StringVar(&cameraTopic, "mqtt-topic-camera", os.Getenv("MQTT_TOPIC_CAMERA"), "Mqtt topic that contains camera frame values, use MQTT_TOPIC_CAMERA if args not set")
@@ -68,12 +70,12 @@ func main() {
 
 	cleanup := metrics.Init(context.Background())
 	defer cleanup()
-	if modelPath == "" && ociRef == "" {
+	if modelPath == "" && ociRepository == "" {
 		zap.L().Error("model path or oci image is mandatory")
 		flag.PrintDefaults()
 		os.Exit(1)
 	}
-	if modelPath != "" && ociRef != "" {
+	if modelPath != "" && ociRepository != "" {
 		zap.L().Error("model path and oci image are exclusives")
 		flag.PrintDefaults()
 		os.Exit(1)
@@ -88,7 +90,8 @@ func main() {
 			zap.S().Panicf("bad model name '%v', unable to detect configuration from name pattern: %v", modelPath, err)
 		}
 	} else {
-		modelPath, modelType, width, height, horizonFromName, err = oci.PullOciImage(ociRef, modelsDir)
+		ctx := context.Background()
+		modelPath, modelType, width, height, horizonFromName, err = oci.PullOciImage(ctx, ociRegistry, ociRepository, ociTag, modelsDir)
 		if err != nil {
 			zap.S().Panicf("bad model name '%v', unable to detect configuration from name pattern: %v", modelPath, err)
 		}
@@ -110,10 +113,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	if ociRef == "" {
+	if ociRepository == "" {
 		zap.S().Infof("model path            : %v", modelPath)
 	} else {
-		zap.S().Infof("oci image model       : %v", ociRef)
+		zap.S().Infof("oci image model       : %v/%v:%v", ociRegistry, ociRepository, ociTag)
 	}
 	zap.S().Infof("model type            : %v", modelType)
 	zap.S().Infof("model for image width : %v", imgWidth)
